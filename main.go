@@ -1,41 +1,10 @@
 package main
 
-import (
-	"log"
-	"os"
-	"path/filepath"
-)
+import "log"
 
 func main() {
-
-	watcher, err := NewWatcher()
+	err := WatchDir(".", func(_ WatcherEvent) {})
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	done := make(chan struct{})
-	events := watcher.Events()
-	go func() {
-		for {
-			event, ok := <-events
-			if !ok {
-				return
-			}
-			log.Printf("%+v", event)
-		}
-		done <- struct{}{}
-	}()
-
-	addWatcher := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		return watcher.Watch(path)
-	}
-
-	if err := filepath.Walk(".", addWatcher); err != nil {
-		log.Fatal(err)
-	}
-
-	<-done
 }

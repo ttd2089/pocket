@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 
@@ -27,6 +28,27 @@ var eventTypes []EventType = []EventType{
 	Write,
 	Remove,
 	Rename,
+}
+
+func (t EventType) String() string {
+	var buffer bytes.Buffer
+
+	if t&Create == Create {
+		buffer.WriteString("|CREATE")
+	}
+	if t&Remove == Remove {
+		buffer.WriteString("|REMOVE")
+	}
+	if t&Write == Write {
+		buffer.WriteString("|WRITE")
+	}
+	if t&Rename == Rename {
+		buffer.WriteString("|RENAME")
+	}
+	if buffer.Len() == 0 {
+		return ""
+	}
+	return buffer.String()[1:]
 }
 
 // A file system event.
@@ -116,18 +138,19 @@ func NewWatcher() (Watcher, error) {
 
 // Starts consuming the fsnotify events and maps them to WatcherEvents.
 func (w *watcherImpl) start() {
+	defer close(w.events)
 	for {
 		select {
 		case event, ok := <-w.fsWatcher.Events:
 			if !ok {
-				break
+				return
 			}
 			if isWatchedEvent(event) {
 				w.events <- newEvent(event)
 			}
 		case err, ok := <-w.fsWatcher.Errors:
 			if !ok {
-				break
+				return
 			}
 			w.events <- WatcherEvent{
 				Error: err,
