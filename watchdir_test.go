@@ -4,6 +4,9 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/go-test/deep"
 )
 
 func Test_WatchDir(t *testing.T) {
@@ -52,15 +55,15 @@ func Test_WatchDir(t *testing.T) {
 			watcher: watcher,
 		}
 		expectedEvents := []WatcherEvent{
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/bar/baz", Type: Create},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/bar/baz", Type: Remove},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{}, Error: errors.New("some error"),
 			},
 		}
@@ -75,7 +78,7 @@ func Test_WatchDir(t *testing.T) {
 			actualEvents = append(actualEvents, e)
 			return nil
 		})
-		if !reflect.DeepEqual(expectedEvents, actualEvents) {
+		if len(deep.Equal(expectedEvents, actualEvents)) != 0 {
 			t.Errorf("handle(); expected %+v, got %+v", expectedEvents, actualEvents)
 		}
 	})
@@ -97,7 +100,7 @@ func Test_WatchDir(t *testing.T) {
 			watcher: watcher,
 		}
 		expectedEvents := []WatcherEvent{
-			WatcherEvent{Event: FsEvent{}, Error: nil},
+			{Event: FsEvent{}, Error: nil},
 		}
 		go func() {
 			for _, event := range expectedEvents {
@@ -128,9 +131,9 @@ func Test_WatchDir(t *testing.T) {
 		}
 		expectedError := errors.New("some error")
 		events := []WatcherEvent{
-			WatcherEvent{Event: FsEvent{}, Error: nil},
-			WatcherEvent{Event: FsEvent{}, Error: nil},
-			WatcherEvent{Event: FsEvent{}, Error: expectedError},
+			{Event: FsEvent{}, Error: nil},
+			{Event: FsEvent{}, Error: nil},
+			{Event: FsEvent{}, Error: expectedError},
 		}
 		go func() {
 			for _, event := range events {
@@ -214,31 +217,31 @@ func Test_WatchDir(t *testing.T) {
 			watcher: watcher,
 		}
 		events := []WatcherEvent{
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/file.txt", Type: Create},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/file.txt", Type: Write},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/file.txt", Type: Rename},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/stuff.txt", Type: Create},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/stuff.txt", Type: Remove},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/bar/", Type: Create},
 				Error: nil,
 			},
-			WatcherEvent{
+			{
 				Event: FsEvent{Path: "/foo/bar/", Type: Remove},
 				Error: nil,
 			},
@@ -252,6 +255,117 @@ func Test_WatchDir(t *testing.T) {
 		dw.watch("/foo/", func(e WatcherEvent) error { return nil })
 		if !reflect.DeepEqual(expectedWatched, actualWatched) {
 			t.Errorf("watch(); expected %+v, got %+v", expectedWatched, actualWatched)
+		}
+	})
+
+	t.Run("Debounced events trigger new directory watches", func(t *testing.T) {
+		expectedWatched := []string{"/foo/", "/foo/bar/", "/foo/bar/baz/"}
+		actualWatched := []string{}
+		watcher := &testWatcher{
+			watch: func(dir string) error {
+				actualWatched = append(actualWatched, dir)
+				return nil
+			},
+			unwatch: func(string) error {
+				t.Error("unexpected call to Unwatch()")
+				return nil
+			},
+			events: make(chan WatcherEvent),
+		}
+		dw := dirWatcher{
+			walkDirs: func(dir string, walkFn func(string) error) error {
+				// When we add the initial directory it's all we'll find, then
+				// when the event is raised for /foo/bar/ CREATE we'll find it
+				// and its subdir /foo/bar/baz/.
+				if dir == "/foo/" {
+					return walkFn(dir)
+				}
+				if dir == "/foo/bar/" {
+					walkFn("/foo/bar/")
+					return walkFn("/foo/bar/baz/")
+				}
+				t.Errorf("unexpected call to walkDirs('%s')", dir)
+				return nil
+			},
+			isDir: func(path string) bool {
+				// We will raise a few create events but only /foo/bar/ is a
+				// new directory.
+				return path == "/foo/bar/"
+			},
+			watcher: watcher,
+			// Make sure the directory add is debounced after the file remove.
+			debounceCount:    2,
+			debounceInterval: time.Minute,
+		}
+		events := []WatcherEvent{
+			{
+				Event: FsEvent{Path: "/foo/stuff.txt", Type: Remove},
+				Error: nil,
+			},
+			{
+				Event: FsEvent{Path: "/foo/bar/", Type: Create},
+				Error: nil,
+			},
+		}
+		go func() {
+			for _, event := range events {
+				watcher.events <- event
+			}
+			close(watcher.events)
+		}()
+		dw.watch("/foo/", func(e WatcherEvent) error { return nil })
+		if !reflect.DeepEqual(expectedWatched, actualWatched) {
+			t.Errorf("watch(); expected %+v, got %+v", expectedWatched, actualWatched)
+		}
+	})
+
+	t.Run("Debounced events do not trigger calls to handle", func(t *testing.T) {
+
+		watcher := &testWatcher{
+			watch: func(string) error { return nil },
+			unwatch: func(string) error {
+				t.Error("unexpected call to Unwatch()")
+				return nil
+			},
+			events: make(chan WatcherEvent),
+		}
+		dw := dirWatcher{
+			walkDirs: func(dir string, walkFn func(string) error) error {
+				return walkFn(dir)
+			},
+			isDir:   func(_ string) bool { return false },
+			watcher: watcher,
+			// Make sure the directory add is debounced after the file remove.
+			debounceCount:    2,
+			debounceInterval: time.Minute,
+		}
+		events := []WatcherEvent{
+			{
+				Event: FsEvent{Path: "/foo/bar/baz", Type: Create},
+				Error: nil,
+			},
+			{
+				Event: FsEvent{Path: "/foo/bar/baz", Type: Remove},
+				Error: nil,
+			},
+			{
+				Event: FsEvent{}, Error: errors.New("some error"),
+			},
+		}
+		go func() {
+			for _, event := range events {
+				watcher.events <- event
+			}
+			close(watcher.events)
+		}()
+		actualEvents := []WatcherEvent{}
+		dw.watch("/foo/", func(e WatcherEvent) error {
+			actualEvents = append(actualEvents, e)
+			return nil
+		})
+		expectedEvents := []WatcherEvent{events[0]}
+		if len(deep.Equal(expectedEvents, actualEvents)) != 0 {
+			t.Errorf("handle(); expected %+v, got %+v", expectedEvents, actualEvents)
 		}
 	})
 }

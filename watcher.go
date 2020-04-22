@@ -10,7 +10,7 @@ import (
 // The Watcher interface the interface the application consumes for file
 // watching. The standard implementation is a wrapper for fsnotify.
 
-// The type to represent the kinds of file system events.
+// EventType represents the kinds of file system events.
 type EventType uint32
 
 // The kinds of file system events we're interested in.
@@ -22,7 +22,7 @@ const (
 )
 
 // A set with the all the defined event types.
-var eventTypes []EventType = []EventType{
+var eventTypes = []EventType{
 	Create,
 	Write,
 	Remove,
@@ -50,7 +50,7 @@ func (t EventType) String() string {
 	return buffer.String()[1:]
 }
 
-// A file system event.
+// An FsEvent represents a file system event.
 type FsEvent struct {
 
 	// The path to the entry the event occured on.
@@ -60,7 +60,7 @@ type FsEvent struct {
 	Type EventType
 }
 
-// The event type a Watcher raises.
+// A WatcherEvent is raised by a Watcher when an event or error occurs.
 type WatcherEvent struct {
 
 	// The file system event. If Error is not nil then the meaning of Event is
@@ -71,7 +71,7 @@ type WatcherEvent struct {
 	Error error
 }
 
-// The interface for file watching.
+// A Watcher raises file system events for watched directories and files.
 type Watcher interface {
 
 	// Tells the watcher to begin watching the given file or directory (not recursive).
@@ -121,7 +121,7 @@ func (w *watcherImpl) Stop() {
 	}
 }
 
-// Creates a new Watcher.
+// NewWatcher creates a new Watcher.
 func NewWatcher() (Watcher, error) {
 	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -129,7 +129,7 @@ func NewWatcher() (Watcher, error) {
 	}
 	w := &watcherImpl{
 		fsWatcher: fsWatcher,
-		events:    make(chan WatcherEvent),
+		events:    make(chan WatcherEvent, 1),
 	}
 	go w.start()
 	return w, nil

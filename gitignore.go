@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// Indicates whether the GitIgnored function is available.
-var GitIgnoreSupported bool = false
+// GitIgnoreSupported indicates whether the GitIgnored function is available.
+var GitIgnoreSupported = false
 
 func init() {
 	if _, err := exec.LookPath("git"); err != nil {
@@ -18,7 +18,7 @@ func init() {
 	}
 }
 
-// Checks if the given path is gitignored.
+// GitIgnored checks if the given path is gitignored.
 func GitIgnored(path string) (bool, error) {
 	cmd := exec.Command("git", "check-ignore", "-q", path)
 	var stdoutBuf bytes.Buffer
@@ -48,7 +48,7 @@ func GitIgnored(path string) (bool, error) {
 	if exitCode == 0 {
 		return true, nil
 	}
-	// Git does not consider the .git folder and contents to be ignored.
+	// git does not consider the .git folder and contents to be ignored.
 	if exitCode == 1 && strings.HasPrefix(path, ".git") {
 		return true, nil
 	}
