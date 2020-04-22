@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"log"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -97,7 +96,7 @@ type watcherImpl struct {
 // Tells the watcher to begin watching the given file or directory (not recursive).
 func (w *watcherImpl) Watch(path string) error {
 	if err := w.fsWatcher.Add(path); err != nil {
-		return fmt.Errorf("failed to add watcher: %s", err.Error())
+		return fmt.Errorf("failed to add watcher: %v", err)
 	}
 	return nil
 }
@@ -105,7 +104,7 @@ func (w *watcherImpl) Watch(path string) error {
 // Stops watching the given file or directory.
 func (w *watcherImpl) Unwatch(path string) error {
 	if err := w.fsWatcher.Remove(path); err != nil {
-		return fmt.Errorf("failed to remove watcher: %s", err.Error())
+		return fmt.Errorf("failed to remove watcher: %v", err)
 	}
 	return nil
 }
@@ -118,7 +117,7 @@ func (w *watcherImpl) Events() <-chan WatcherEvent {
 // Stops the Watcher.
 func (w *watcherImpl) Stop() {
 	if err := w.fsWatcher.Close(); err != nil {
-		log.Printf("Error closing fsnotify.Watcher: %+v", err)
+		logger.Printf("Error closing fsnotify.Watcher: %v\n", err)
 	}
 }
 

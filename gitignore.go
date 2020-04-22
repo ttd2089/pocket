@@ -4,31 +4,53 @@ import (
 	"bytes"
 	"errors"
 	"os/exec"
+	"strings"
 )
 
-var GitIgnoreSupported bool
+// Indicates whether the GitIgnored function is available.
+var GitIgnoreSupported bool = false
 
 func init() {
-	_, err := exec.LookPath("git")
-	GitIgnoreSupported = err == nil
+	if _, err := exec.LookPath("git"); err != nil {
+		logger.Printf("gitignore not supported: %v", err)
+	} else {
+		GitIgnoreSupported = true
+	}
 }
 
+// Checks if the given path is gitignored.
 func GitIgnored(path string) (bool, error) {
 	cmd := exec.Command("git", "check-ignore", "-q", path)
 	var stdoutBuf bytes.Buffer
 	var stderrBuf bytes.Buffer
 	cmd.Stdout = &stdoutBuf
 	cmd.Stderr = &stderrBuf
+	// Run() returns the "exit status 1" error when the file isn't ignored so
+	// that's not an error for us.
 	if err := cmd.Run(); err != nil && err.Error() != "exit status 1" {
+		logger.Printf("gitignore error: %v\n", err)
 		return false, err
 	}
 	stderr := stderrBuf.String()
 	if stderr != "" {
-		return false, errors.New(stderr)
+		err := errors.New(stderr)
+		logger.Printf("gitignore error: %v\n", err)
+		return false, err
 	}
 	stdout := stdoutBuf.String()
-	if stderr != "" {
-		return false, errors.New(stdout)
+	if stdout != "" {
+		err := errors.New(stdout)
+		logger.Printf("gitignore error: %v\n", err)
+		return false, err
 	}
-	return cmd.ProcessState.ExitCode() == 0, nil
+
+	exitCode := cmd.ProcessState.ExitCode()
+	if exitCode == 0 {
+		return true, nil
+	}
+	// Git does not consider the .git folder and contents to be ignored.
+	if exitCode == 1 && strings.HasPrefix(path, ".git") {
+		return true, nil
+	}
+	return false, nil
 }
