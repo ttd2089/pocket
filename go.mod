@@ -1,4 +1,4 @@
-module pocket
+module github.com/ttd2089/pocket
 
 go 1.12
 
