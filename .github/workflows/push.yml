@@ -8,14 +8,12 @@ on:
 
 jobs:
   build:
-    name: Try GitVersion
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
       - run: git fetch --unshallow
-      - run: git checkout master
-      - run: git checkout feature/pipeline
       - name: GitVersion
         id: gitversion
         uses: ./.github/actions/gitversion
