@@ -13,4 +13,4 @@ jobs:
         uses: ./.github/actions/gitversion
         with:
           entrypoint: /bin/sh
-          args: /tools/dotnet-gitversion
+          args: [ "-c", "/tools/dotnet-gitversion" ]
