@@ -1,6 +1,10 @@
-name: Do Stuff
+name: Release
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+      - feature/pipeline
 
 jobs:
   build:
