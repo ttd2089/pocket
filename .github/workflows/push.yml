@@ -17,5 +17,5 @@ jobs:
         uses: ./.github/actions/gitversion
         with:
           entrypoint: /bin/sh
-          args: -c "echo [set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)"
+          args: -c "echo \"##[set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)\""
       - run: echo ${{steps.gitversion.outputs.version}}
