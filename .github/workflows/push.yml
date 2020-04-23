@@ -20,4 +20,15 @@ jobs:
         with:
           entrypoint: /bin/sh
           args: -c "echo \"##[set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)\""
-      - run: echo ${{steps.gitversion.outputs.version}}
+      - name: Build For Linux
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o ./dist/linux/amd64/
+            -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
+      - name: Build For Mac
+        run: |
+          GOOS=darwin GOARCH=amd64 go build -o ./dist/darwin/amd64/
+            -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
+      - name: Build For Windows
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/
+            -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
