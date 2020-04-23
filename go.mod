@@ -1,6 +1,6 @@
 module github.com/ttd2089/pocket
 
-go 1.12
+go 1.14
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9

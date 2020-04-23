@@ -1,0 +1,16 @@
+name: Do Stuff
+
+on: [push]
+
+jobs:
+  build:
+    name: Try GitVersion
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: GitVersion
+        uses: ./.github/actions/gitversion
+        with:
+          entrypoint: /bin/sh
+          args: /tools/dotnet-gitversion
