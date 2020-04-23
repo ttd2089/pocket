@@ -16,4 +16,4 @@ jobs:
         uses: ./.github/actions/gitversion
         with:
           entrypoint: /bin/sh
-          args: -c "ls .git/refs/heads"
+          args: -c /tools/dotnet-gitversion
