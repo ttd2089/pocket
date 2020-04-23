@@ -33,4 +33,8 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/pocket.exe \
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Release
-        run: hub release create -a ./dist/ ${{steps.gitversion.outputs.version}}
+        run: |
+          hub release create \
+            -a ./dist/ \
+            -m ${{steps.gitversion.outputs.version}} \
+            ${{steps.gitversion.outputs.version}}
