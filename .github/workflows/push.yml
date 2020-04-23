@@ -17,4 +17,4 @@ jobs:
         uses: ./.github/actions/gitversion
         with:
           entrypoint: /bin/sh
-          args: -c "git branch -l"
+          args: -c "ls .git/refs/heads"
