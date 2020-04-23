@@ -34,7 +34,7 @@ jobs:
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Release
         run: |
-          hub release create \
+          GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} hub release create \
             -a ./dist/ \
             -m ${{steps.gitversion.outputs.version}} \
             ${{steps.gitversion.outputs.version}}
