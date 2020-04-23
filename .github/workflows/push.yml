@@ -33,4 +33,10 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/pocket.exe \
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Tree (maybe)
-        run: tree
+        run: |
+          for x in $(ls dist); do \
+            echo $x; \
+            for y in $(ls dist/$x); do \
+              echo $x/$y; \
+              for z in $(ls dist/$x/$y); do \
+                echo $x/$y/$z
