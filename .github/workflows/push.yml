@@ -9,6 +9,7 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
+      - run: git fetch --all
       - run: git checkout master
       - run: git checkout -
       - name: GitVersion
