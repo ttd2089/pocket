@@ -22,13 +22,13 @@ jobs:
           args: -c "echo \"##[set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)\""
       - name: Build For Linux
         run: |
-          GOOS=linux GOARCH=amd64 go build -o ./dist/linux/amd64/
+          GOOS=linux GOARCH=amd64 go build -o ./dist/linux/amd64/pocket
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Build For Mac
         run: |
-          GOOS=darwin GOARCH=amd64 go build -o ./dist/darwin/amd64/
+          GOOS=darwin GOARCH=amd64 go build -o ./dist/darwin/amd64/pocket
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Build For Windows
         run: |
-          GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/
+          GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/pocket.exe
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
