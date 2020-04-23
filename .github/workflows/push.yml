@@ -10,7 +10,6 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v2
       - run: git fetch --all
-      - run: git checkout master
       - name: GitVersion
         uses: ./.github/actions/gitversion
         with:
