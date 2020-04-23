@@ -9,7 +9,9 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v2
-      - run: git fetch --all --unshallow
+      - run: git fetch --unshallow
+      - run: git checkout master
+      - run: git checkout feature/pipeline
       - name: GitVersion
         uses: ./.github/actions/gitversion
         with:
