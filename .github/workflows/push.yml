@@ -22,21 +22,21 @@ jobs:
           args: -c "echo \"##[set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)\""
       - name: Build For Linux
         run: |
-          GOOS=linux GOARCH=amd64 go build -o ./dist/linux/amd64/pocket \
+          GOOS=linux GOARCH=amd64 go build -o ./dist/pocket-linux-amd64 \
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Build For Mac
         run: |
-          GOOS=darwin GOARCH=amd64 go build -o ./dist/darwin/amd64/pocket \
+          GOOS=darwin GOARCH=amd64 go build -o ./dist/pocket-darwin-amd64 \
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Build For Windows
         run: |
-          GOOS=windows GOARCH=amd64 go build -o ./dist/windows/amd64/pocket.exe \
+          GOOS=windows GOARCH=amd64 go build -o ./dist/pocket-amd64.exe \
             -ldflags "-X main.productVersion=${{steps.gitversion.outputs.version}}"
       - name: Release
         run: |
           GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} hub release create \
-            -a ./dist/linux/amd64/pocket#pocket-linux-amd64 \
-            -a ./dist/darwin/amd64/pocket#pocket-darwin-amd64 \
-            -a ./dist/windows/amd64/pocket.exe#pocket.exe \
+            -a ./dist/pocket-linux-amd64 \
+            -a ./dist/pocket-darwin-amd64 \
+            -a ./dist/pocket-amd64.exe \
             -m ${{steps.gitversion.outputs.version}} \
             ${{steps.gitversion.outputs.version}}
