@@ -7,14 +7,10 @@ jobs:
     name: Try GitVersion
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Master
-        uses: actions/checkout@v2
-        with:
-          ref: master
       - name: Checkout Branch
         uses: actions/checkout@v2
-        with:
-          clean: false
+      - run: git checkout master
+      - run: git checkout -
       - name: GitVersion
         uses: ./.github/actions/gitversion
         with:
