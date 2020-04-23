@@ -13,7 +13,9 @@ jobs:
       - run: git checkout master
       - run: git checkout feature/pipeline
       - name: GitVersion
+        id: gitversion
         uses: ./.github/actions/gitversion
         with:
           entrypoint: /bin/sh
-          args: -c /tools/dotnet-gitversion
+          args: -c "echo "##[set-output name=version;]$(/tools/dotnet-gitversion /showvariable semver)"
+      - run: echo ${{steps.gitversion.outputs.version}}
