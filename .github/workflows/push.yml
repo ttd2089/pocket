@@ -35,6 +35,8 @@ jobs:
       - name: Release
         run: |
           GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}} hub release create \
-            -a ./dist/ \
+            -a ./dist/linux/amd64/pocket#pocket-linux-amd64 \
+            -a ./dist/darwin/amd64/pocket#pocket-darwin-amd64 \
+            -a ./dist/windows/amd64/pocket.exe#pocket.exe \
             -m ${{steps.gitversion.outputs.version}} \
             ${{steps.gitversion.outputs.version}}
