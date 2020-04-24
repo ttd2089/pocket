@@ -13,4 +13,4 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v2
       - name: Go fmt
-        run: test -z $(gofmt -l .) || echo "go fmt required $(gofmt -l .)" && exit 1
+        run: test -z $(gofmt -l .) || { echo "go fmt required $(gofmt -l .)" && exit 1 }
