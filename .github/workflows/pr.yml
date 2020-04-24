@@ -1,0 +1,15 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Pull Request Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Go fmt
+        run: test -z $(gofmt -l .)
+       
