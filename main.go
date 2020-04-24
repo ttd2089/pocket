@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -12,26 +13,41 @@ import (
 	"github.com/pborman/getopt/v2"
 )
 
+var productVersion = "0.0.0"
+
 func main() {
 
 	cli := getopt.New()
 	cli.SetProgram("pocket")
 	cli.SetParameters("<cmd> [<cmd-args>]")
-	usage := func() {
-		cli.PrintUsage(os.Stderr)
-		fmt.Fprintf(os.Stderr, "<cmd>               the command to run on file changes\n")
-		fmt.Fprintf(os.Stderr, "<cmd-args>          the arguments for <cmd>\n")
+	usage := func(w io.Writer) {
+		cli.PrintUsage(w)
+		fmt.Fprintf(w, "<cmd>               the command to run on file changes\n")
+		fmt.Fprintf(w, "<cmd-args>          the arguments for <cmd>\n")
 	}
-	cli.SetUsage(usage)
+	cli.SetUsage(func() { usage(os.Stderr) })
 
 	chdirOpt := cli.StringLong("chdir", 'C', "", "the directory to run in", "<dir>")
 	helpFlag := cli.BoolLong("help", 'h', "display help")
 	logFlag := cli.BoolLong("log", 'L', "write application logs to stderr")
+	versionFlag := cli.BoolLong("version", 'v', "display product version")
 
 	cli.Parse(os.Args)
+
 	args := cli.Args()
-	if *helpFlag || len(args) == 0 {
-		usage()
+
+	if *helpFlag {
+		usage(os.Stdout)
+		return
+	}
+
+	if *versionFlag {
+		fmt.Fprintf(os.Stdout, "pocket version %s", productVersion)
+		return
+	}
+
+	if len(args) == 0 {
+		usage(os.Stdout)
 		return
 	}
 

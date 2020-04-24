@@ -1,0 +1,5 @@
+name: 'GitVersion'
+description: 'Use GitVersion'
+runs:
+  using: 'docker'
+  image: 'gittools/gitversion'

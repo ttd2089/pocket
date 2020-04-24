@@ -1,0 +1,5 @@
+name: 'Golang CI Lint'
+description: 'Use Golang CI Lint'
+runs:
+  using: 'docker'
+  image: 'golangci/golangci-lint'

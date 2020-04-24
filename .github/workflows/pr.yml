@@ -1,0 +1,23 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Pull Request Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
+      - name: Go fmt
+        run: test -z $(gofmt -l .) || { echo "go fmt required $(gofmt -l .)" && exit 1; }
+      - name: Go vet
+        run: go vet ./...
+      - name: Golangci-lint
+        uses: ./.github/actions/golangci-lint
+        with:
+          entrypoint: golangci-lint
+          args: run
