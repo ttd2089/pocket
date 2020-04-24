@@ -19,5 +19,5 @@ jobs:
       - name: Golang CI Lint
         uses: ./.github/actions/golangci-lint
         with:
-          entrypoint: golangc-lint
+          entrypoint: golangci-lint
           args: run
