@@ -74,10 +74,12 @@ func Test_WatchDir(t *testing.T) {
 			close(watcher.events)
 		}()
 		actualEvents := []WatcherEvent{}
-		dw.watch("/foo/", func(e WatcherEvent) error {
+		if err := dw.watch("/foo/", func(e WatcherEvent) error {
 			actualEvents = append(actualEvents, e)
 			return nil
-		})
+		}); err != nil {
+			t.Errorf("unexpected error from watch(): %+v", err)
+		}
 		if len(deep.Equal(expectedEvents, actualEvents)) != 0 {
 			t.Errorf("handle(); expected %+v, got %+v", expectedEvents, actualEvents)
 		}
@@ -166,7 +168,9 @@ func Test_WatchDir(t *testing.T) {
 		dw := dirWatcher{
 			walkDirs: func(dir string, walkFn func(string) error) error {
 				for _, path := range expectedWatched {
-					walkFn(path)
+					if err := walkFn(path); err != nil {
+						t.Errorf("unexpected error from walkFn(): %+v", err)
+					}
 				}
 				return nil
 			},
@@ -174,7 +178,9 @@ func Test_WatchDir(t *testing.T) {
 			watcher: watcher,
 		}
 		close(watcher.events)
-		dw.watch("/foo/", func(e WatcherEvent) error { return nil })
+		if err := dw.watch("/foo/", func(e WatcherEvent) error { return nil }); err != nil {
+			t.Errorf("unexpected error from watch(): %+v", err)
+		}
 		if !reflect.DeepEqual(expectedWatched, actualWatched) {
 			t.Errorf("watch(); expected %+v, got %+v", expectedWatched, actualWatched)
 		}
@@ -203,7 +209,9 @@ func Test_WatchDir(t *testing.T) {
 					return walkFn(dir)
 				}
 				if dir == "/foo/bar/" {
-					walkFn("/foo/bar/")
+					if err := walkFn("/foo/bar/"); err != nil {
+						t.Errorf("unexpected error from walkFn(): %+v", err)
+					}
 					return walkFn("/foo/bar/baz/")
 				}
 				t.Errorf("unexpected call to walkDirs('%s')", dir)
@@ -252,7 +260,9 @@ func Test_WatchDir(t *testing.T) {
 			}
 			close(watcher.events)
 		}()
-		dw.watch("/foo/", func(e WatcherEvent) error { return nil })
+		if err := dw.watch("/foo/", func(e WatcherEvent) error { return nil }); err != nil {
+			t.Errorf("unexpected error from watch(): %+v", err)
+		}
 		if !reflect.DeepEqual(expectedWatched, actualWatched) {
 			t.Errorf("watch(); expected %+v, got %+v", expectedWatched, actualWatched)
 		}
@@ -281,7 +291,9 @@ func Test_WatchDir(t *testing.T) {
 					return walkFn(dir)
 				}
 				if dir == "/foo/bar/" {
-					walkFn("/foo/bar/")
+					if err := walkFn("/foo/bar/"); err != nil {
+						t.Errorf("unexpected error from walkFn(): %+v", err)
+					}
 					return walkFn("/foo/bar/baz/")
 				}
 				t.Errorf("unexpected call to walkDirs('%s')", dir)
@@ -313,7 +325,9 @@ func Test_WatchDir(t *testing.T) {
 			}
 			close(watcher.events)
 		}()
-		dw.watch("/foo/", func(e WatcherEvent) error { return nil })
+		if err := dw.watch("/foo/", func(e WatcherEvent) error { return nil }); err != nil {
+			t.Errorf("unexpected error from watch(): %+v", err)
+		}
 		if !reflect.DeepEqual(expectedWatched, actualWatched) {
 			t.Errorf("watch(); expected %+v, got %+v", expectedWatched, actualWatched)
 		}
@@ -359,10 +373,12 @@ func Test_WatchDir(t *testing.T) {
 			close(watcher.events)
 		}()
 		actualEvents := []WatcherEvent{}
-		dw.watch("/foo/", func(e WatcherEvent) error {
+		if err := dw.watch("/foo/", func(e WatcherEvent) error {
 			actualEvents = append(actualEvents, e)
 			return nil
-		})
+		}); err != nil {
+			t.Errorf("unexpected error from watch(): %+v", err)
+		}
 		expectedEvents := []WatcherEvent{events[0]}
 		if len(deep.Equal(expectedEvents, actualEvents)) != 0 {
 			t.Errorf("handle(); expected %+v, got %+v", expectedEvents, actualEvents)

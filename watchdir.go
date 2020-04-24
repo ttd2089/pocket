@@ -58,7 +58,9 @@ func (dw *dirWatcher) watch(dir string, handle Handler) error {
 			return nil
 		}
 
-		dw.processEvent(event)
+		if err := dw.processEvent(event); err != nil {
+			return err
+		}
 
 		// Debounce the event queue a bit. Our command will reflect the state
 		// of the system when it runs so we don't actually care about the
@@ -66,12 +68,12 @@ func (dw *dirWatcher) watch(dir string, handle Handler) error {
 	DEBOUNCE:
 		for i := 0; i < dw.debounceCount; i++ {
 			select {
-			case e, _ := <-events:
+			case e := <-events:
 				if err := dw.processEvent(e); err != nil {
 					return err
 				}
 				break
-			case _ = <-time.After(dw.debounceInterval):
+			case <-time.After(dw.debounceInterval):
 				break DEBOUNCE
 			}
 		}
