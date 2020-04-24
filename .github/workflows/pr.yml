@@ -10,6 +10,8 @@ jobs:
     name: Pull Request Validation
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v2
       - name: Go fmt
         run: test -z $(gofmt -l .)
        
