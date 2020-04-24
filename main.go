@@ -17,7 +17,7 @@ var productVersion = "0.0.0"
 
 func main() {
 
-	  cli := getopt.New()
+	cli := getopt.New()
 	cli.SetProgram("pocket")
 	cli.SetParameters("<cmd> [<cmd-args>]")
 	usage := func(w io.Writer) {
