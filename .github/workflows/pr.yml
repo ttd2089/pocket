@@ -16,3 +16,8 @@ jobs:
         run: test -z $(gofmt -l .) || { echo "go fmt required $(gofmt -l .)" && exit 1; }
       - name: Go vet
         run: go vet ./...
+      - name: Golang CI Lint
+        uses: ./.github/actions/golangci-lint
+        with:
+          entrypoint: golangc-lint
+          args: run
