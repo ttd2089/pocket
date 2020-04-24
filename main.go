@@ -42,7 +42,7 @@ func main() {
 	}
 
 	if *versionFlag {
-		fmt.Fprintf(os.Stdout, "pocket version %d", productVersion)
+		fmt.Fprintf(os.Stdout, "pocket version %s", productVersion)
 		return
 	}
 
