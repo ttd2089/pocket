@@ -87,10 +87,36 @@ type Watcher interface {
 	Stop()
 }
 
+// A WatchFilter is a function that indicates whether an FsEvent should be
+// filtered out of the event stream emitted by a Watcher.
+type WatchFilter func(event FsEvent) (bool, error)
+
+// NewWatcher creates a new Watcher.
+// If filter is nil then no events will be filtered out.
+func NewWatcher(filter WatchFilter) (Watcher, error) {
+	fsWatcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+	if filter == nil {
+		filter = func(event FsEvent) (bool, error) {
+			return false, nil
+		}
+	}
+	w := &watcherImpl{
+		fsWatcher: fsWatcher,
+		events:    make(chan WatcherEvent, 1),
+		filter:    filter,
+	}
+	go w.start()
+	return w, nil
+}
+
 // An implementation of Watcher using fsnotify.
 type watcherImpl struct {
 	fsWatcher *fsnotify.Watcher
 	events    chan WatcherEvent
+	filter    WatchFilter
 }
 
 // Tells the watcher to begin watching the given file or directory (not recursive).
@@ -121,20 +147,6 @@ func (w *watcherImpl) Stop() {
 	}
 }
 
-// NewWatcher creates a new Watcher.
-func NewWatcher() (Watcher, error) {
-	fsWatcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		return nil, err
-	}
-	w := &watcherImpl{
-		fsWatcher: fsWatcher,
-		events:    make(chan WatcherEvent, 1),
-	}
-	go w.start()
-	return w, nil
-}
-
 // Starts consuming the fsnotify events and maps them to WatcherEvents.
 func (w *watcherImpl) start() {
 	defer close(w.events)
@@ -144,8 +156,20 @@ func (w *watcherImpl) start() {
 			if !ok {
 				return
 			}
-			if isWatchedEvent(event) {
-				w.events <- newEvent(event)
+			if !isWatchedEvent(event) {
+				break
+			}
+			fsEvent := newEvent(event)
+			skip, err := w.filter(fsEvent)
+			if err != nil {
+				logger.Printf(
+					"watcher filter error: event=%v, error=%v", fsEvent, err)
+			} else if skip {
+				logger.Printf("watcher filter: ignoring event %v", fsEvent)
+				break
+			}
+			w.events <- WatcherEvent{
+				Event: fsEvent,
 			}
 		case err, ok := <-w.fsWatcher.Errors:
 			if !ok {
@@ -169,12 +193,9 @@ func isWatchedEvent(event fsnotify.Event) bool {
 }
 
 // Maps an fsnotify.Event to a WatcherEvent.
-func newEvent(event fsnotify.Event) WatcherEvent {
-	return WatcherEvent{
-		Event: FsEvent{
-			Path: event.Name,
-			Type: EventType(event.Op),
-		},
-		Error: nil,
+func newEvent(event fsnotify.Event) FsEvent {
+	return FsEvent{
+		Path: event.Name,
+		Type: EventType(event.Op),
 	}
 }
