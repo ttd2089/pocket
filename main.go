@@ -72,9 +72,11 @@ func run(cmd string, args ...string) {
 		die("error: gitignore filter not supported")
 	}
 
-	filter := GitIgnored
+	filter := func(event FsEvent) (bool, error) {
+		return GitIgnored(event.Path)
+	}
 
-	watcher, err := NewWatcher()
+	watcher, err := NewWatcher(filter)
 	if err != nil {
 		die(err.Error())
 	}
@@ -87,15 +89,6 @@ func run(cmd string, args ...string) {
 	handle := func(e WatcherEvent) error {
 		if e.Error != nil {
 			logger.Printf("watcher error: %v", e.Error)
-			return nil
-		}
-		skip, err := filter(e.Event.Path)
-		if err != nil {
-			logger.Printf("filter error: %v", err)
-			return nil
-		}
-		if skip {
-			logger.Printf("ignoring event: %v", e.Event)
 			return nil
 		}
 		if err = stopProcess(proc); err != nil {
