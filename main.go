@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
-	"runtime"
 	"strings"
 
 	"github.com/pborman/getopt/v2"
@@ -114,7 +112,7 @@ func die(message string) {
 
 // Starts a process using the given cmd and args.
 func startProcess(cmd string, args []string) (*exec.Cmd, error) {
-	proc := exec.Command(cmd, args...)
+	proc := newCommand(cmd, args...)
 	proc.Stderr = os.Stderr
 	proc.Stdout = os.Stdout
 	if err := proc.Start(); err != nil {
@@ -129,21 +127,4 @@ func startProcess(cmd string, args []string) (*exec.Cmd, error) {
 		return nil, fmt.Errorf("failed to run '%s': %v", strings.Join(tokens, " "), err)
 	}
 	return proc, nil
-}
-
-// Stops the given command process and waits for it to complete.
-func stopProcess(proc *exec.Cmd) error {
-	// Killing an already-exited process returns a nil error on linux and a
-	// non-nil error on windows.
-	ignoreErr := func(err error) bool {
-		return runtime.GOOS == "windows" &&
-			strings.Contains(err.Error(), "TerminateProcess: Access is denied")
-	}
-	if err := proc.Process.Kill(); err != nil && !ignoreErr(err) {
-		return fmt.Errorf("failed to stop %s: %v", path.Base(proc.Path), err.Error())
-	}
-	// This will error with 'signal: killed' or 'exit status 1' if we killed
-	// process so just ignore it.
-	_ = proc.Wait()
-	return nil
 }
