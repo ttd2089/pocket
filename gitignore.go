@@ -10,7 +10,7 @@ import (
 // GitIgnoreSupported indicates whether the GitIgnored function is available.
 var GitIgnoreSupported = false
 
-func init() {
+func initGitignore() {
 	if _, err := exec.LookPath("git"); err != nil {
 		logger.Printf("gitignore not supported: %v", err)
 	} else {

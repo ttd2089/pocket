@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -12,6 +13,15 @@ import (
 )
 
 var productVersion = "0.0.0"
+
+var logger *log.Logger
+
+func init() {
+
+	logger = log.New(ioutil.Discard, "", log.LstdFlags)
+
+	initGitignore()
+}
 
 func main() {
 
