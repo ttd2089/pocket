@@ -163,9 +163,9 @@ func (w *watcherImpl) start() {
 			skip, err := w.filter(fsEvent)
 			if err != nil {
 				logger.Printf(
-					"watcher filter error: event=%v, error=%v", fsEvent, err)
+					"watcher filter error: event=%v, error=%v\n", fsEvent, err)
 			} else if skip {
-				logger.Printf("watcher filter: ignoring event %v", fsEvent)
+				logger.Printf("watcher filter: ignoring event %v\n", fsEvent)
 				break
 			}
 			w.events <- WatcherEvent{

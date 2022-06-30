@@ -12,7 +12,7 @@ var GitIgnoreSupported = false
 
 func initGitignore() {
 	if _, err := exec.LookPath("git"); err != nil {
-		logger.Printf("gitignore not supported: %v", err)
+		logger.Printf("gitignore not supported: %v\n", err)
 	} else {
 		GitIgnoreSupported = true
 	}
