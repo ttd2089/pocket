@@ -23,14 +23,14 @@ func stopProcess(proc *exec.Cmd) error {
 	pid := proc.Process.Pid
 
 	if err := syscall.Kill(-pid, syscall.SIGINT); err != nil {
-		logger.Printf("failed to send SIGINT to %s: %s", path.Base(proc.Path), err.Error())
+		logger.Printf("failed to send SIGINT to %s: %s\n", path.Base(proc.Path), err.Error())
 	} else {
 		// If the sigint worked then give it a moment
 		time.Sleep(200 * time.Millisecond)
 	}
 
 	if err := syscall.Kill(-pid, syscall.SIGKILL); err != nil {
-		return fmt.Errorf("failed to kill %s: %s", path.Base(proc.Path), err.Error())
+		return fmt.Errorf("failed to kill %s: %s\n", path.Base(proc.Path), err.Error())
 	}
 
 	// This will error with 'signal: killed' or 'exit status 1' if we killed

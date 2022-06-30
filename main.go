@@ -75,13 +75,15 @@ func main() {
 // Runs the command and re-starts it on file changes.
 func run(cmd string, args ...string) {
 
-	// TODO: support other filter options?
-	if !GitIgnoreSupported {
-		die("error: gitignore filter not supported")
+	filter := func(_ FsEvent) (bool, error) {
+		return false, nil
 	}
 
-	filter := func(event FsEvent) (bool, error) {
-		return GitIgnored(event.Path)
+	if GitIgnoreSupported {
+		logger.Printf("using .gitignore filter")
+		filter = func(event FsEvent) (bool, error) {
+			return GitIgnored(event.Path)
+		}
 	}
 
 	watcher, err := NewWatcher(filter)
@@ -96,7 +98,7 @@ func run(cmd string, args ...string) {
 
 	handle := func(e WatcherEvent) error {
 		if e.Error != nil {
-			logger.Printf("watcher error: %v", e.Error)
+			logger.Printf("watcher error: %v\n", e.Error)
 			return nil
 		}
 		if err = stopProcess(proc); err != nil {
