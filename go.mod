@@ -8,4 +8,4 @@ require (
 	github.com/pborman/getopt v0.0.0-20190409184431-ee0cd42419d3
 )
 
-require golang.org/x/sys v0.0.0-20191005200804-aed5e4c7ecf9 // indirect
+require golang.org/x/sys v0.1.0 // indirect
